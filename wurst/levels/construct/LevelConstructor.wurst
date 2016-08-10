@@ -1,0 +1,108 @@
+package LevelConstructor
+
+// ---------------
+
+import initlater Levels
+import Level
+import Stack
+import LinkedList
+
+// ---------------
+
+class ListArr
+	Stack<unit> array[llCount] stack
+	LinkedList<unit> reds
+	construct()
+		for int i=0 to llCount-1
+			stack[i]	= new Stack<unit>
+		reds			= new LinkedList<unit>
+	ondestroy
+		for int i=0 to llCount-1
+			destroy stack[i]
+		destroy reds
+
+Stack<ListArr> arrs	= new Stack<ListArr>
+
+// ---------------
+
+Table uidLists		= new Table
+
+// ---------------
+
+public abstract class LevelConstructor
+
+	/** Give the type of level you want as input, this guy does the dirty work */
+	static function get(int t) returns Level
+		let arr			= uidLists.loadInt('hpea') castTo ListArr
+		if arr==null
+			printError("getLevelOfType - error 0")
+			PauseGame(true)
+	
+		let list		= arr.stack[t]
+		
+		if list.getSize()==0
+			return null
+			
+		let u			= list.pop()
+		let mid			= u.getPos()
+
+		let corner1		= getClosest(mid,arr)
+		if corner1==null
+			return null
+
+		let corner2		= getClosest(mid,arr)
+		if corner2==null
+			return null
+			
+		
+		
+		return null
+		
+	/** Free memory, PLEASE DO THIS! */
+	static function cleanUp()
+		while arrs.getSize()>0
+			destroy arrs.pop()
+		destroy arrs
+
+	/** If you want this thingy to actually work */
+	static function doInit()
+		GroupEnumUnitsInRect(ENUM_GROUP,bj_mapInitialPlayableArea,null)
+		for unit u from ENUM_GROUP
+			
+			let key		= u.getTypeId()
+			var arr		= uidLists.loadInt(key) castTo ListArr
+			if arr==null
+				arr		= new ListArr
+				uidLists.saveInt(key,arr castTo int)
+				arrs.push(arr)
+			
+			// !! RED PEASANTS ARE LEVEL CORNERS !!
+			var i		= GetPlayerId(u.getOwner())-1
+			if i<0
+				arr.reds.add(u)
+			else
+				arr.stack[i].push(u)
+	
+	static function getClosest(vec2 mid,ListArr arr) returns unit
+		
+		real nearest			= 1000000.0
+		unit result				= null
+		
+		let iterator			= arr.reds.iterator()
+		var entry				= iterator.current
+	
+		while iterator.hasNext()
+			let u				= iterator.next()
+			let pos				= u.getPos()
+			let dist			= (pos.x-mid.x)*(pos.x-mid.x) + (pos.y-mid.y)*(pos.y-mid.y)
+			if dist<nearest
+				nearest			= dist
+				entry			= iterator.current
+				result			= u
+		
+		if result!=null
+			iterator.current	= entry
+			iterator.remove()
+		iterator.close()
+		
+		return result

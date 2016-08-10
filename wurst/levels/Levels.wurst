@@ -1,0 +1,48 @@
+package Levels
+
+// ---------------
+
+import public Level
+import LevelConstructor
+
+// ---------------
+
+constant llEasy				= new LevelList(LevelType("Easy",color(20,255,20)))
+constant llMedium			= new LevelList(LevelType("Medium",color(255,205,20)))
+constant llHard				= new LevelList(LevelType("Hard",color(255,105,0)))
+constant llBrutal			= new LevelList(LevelType("Brutal",color(205,15,0)))
+constant llImpossible		= new LevelList(LevelType("Impossible",color(175,0,105)))
+
+public constant llCount		= 5
+
+LevelList array llArray
+
+init
+	llArray[0]				= llEasy
+	llArray[1]				= llMedium
+	llArray[2]				= llHard
+	llArray[3]				= llBrutal
+	llArray[4]				= llImpossible
+	
+	LevelConstructor.doInit()
+	
+	// Some extra processing is done to have the order randomized
+	for int i=0 to llCount-1
+		
+		Level array temp
+		int length			= 0
+		
+		while true
+			let l			= LevelConstructor.get(i)
+			if l==null
+				break
+			temp[length]	= l
+			length++
+		
+		while length>0
+			length--
+			int j			= GetRandomInt(0,length)
+			llArray[0].queue.enqueue(temp[j])
+			temp[j]			= temp[length]
+	
+	LevelConstructor.cleanUp()

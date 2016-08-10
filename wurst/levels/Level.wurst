@@ -1,0 +1,30 @@
+package Level
+
+// ---------------
+
+import Queue
+import Debug
+
+// ---------------
+
+public class Level
+	vec2 pos
+	vec2 size
+
+// ---------------
+	
+public tuple LevelType(string id,color idcol)
+
+// ---------------
+	
+public class LevelList extends Debug
+	
+	Queue<Level> queue
+	LevelType levelType
+	
+	construct(LevelType levelType)
+		this.levelType	= levelType
+		this.queue		= new Queue<Level>
+			
+	override function getName() returns string
+		return "LevelList"

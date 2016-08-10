@@ -1,0 +1,10 @@
+package Main
+
+// ---------------
+
+import Client
+
+// ---------------
+
+init
+	print("Hello Wurst")
