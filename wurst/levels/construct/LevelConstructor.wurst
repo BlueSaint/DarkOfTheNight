@@ -2,107 +2,102 @@ package LevelConstructor
 
 // ---------------
 
-import initlater Levels
-import Level
+import Levels
 import Stack
-import LinkedList
+import ClosureForGroups
+import UnitID
 
 // ---------------
 
-class ListArr
-	Stack<unit> array[llCount] stack
-	LinkedList<unit> reds
-	construct()
-		for int i=0 to llCount-1
-			stack[i]	= new Stack<unit>
-		reds			= new LinkedList<unit>
-	ondestroy
-		for int i=0 to llCount-1
-			destroy stack[i]
-		destroy reds
+/** UID_LEVEL_MIDPOS:s are stored like this */
+class Position
+	real x
+	real y
+	construct(vec2 source)
+		this.x	= source.x
+		this.y	= source.y
+	function vec() returns vec2
+		return vec2(x,y)
 
-Stack<ListArr> arrs	= new Stack<ListArr>
-
-// ---------------
-
-Table uidLists		= new Table
-
-// ---------------
-
+/** gives level with pos,size and actors configured */
 public abstract class LevelConstructor
 
-	/** Give the type of level you want as input, this guy does the dirty work */
+	/** temporary rect used by LevelConstructor */
+	private static rect tempR
+	
+	/** UID_LEVEL_MIDPOS:s are stored into these */
+	private static Stack<Position> array lvlMids
+	
+	/** the area inside which we look for UID_LEVEL_CORNER:s */
+	private static function map() returns rect
+		return bj_mapInitialPlayableArea
+
+	/** finds level of given type
+	peasants = start pos
+	footmen = corners
+	rest are actors */
 	static function get(int t) returns Level
-		let arr			= uidLists.loadInt('hpea') castTo ListArr
-		if arr==null
-			printError("getLevelOfType - error 0")
-			PauseGame(true)
-	
-		let list		= arr.stack[t]
-		
-		if list.getSize()==0
+		if lvlMids[t].getSize()==0
 			return null
-			
-		let u			= list.pop()
-		let mid			= u.getPos()
-
-		let corner1		= getClosest(mid,arr)
-		if corner1==null
-			return null
-
-		let corner2		= getClosest(mid,arr)
-		if corner2==null
-			return null
-			
 		
+		let pos			= lvlMids[t].pop()
+		let toprightres	= findCorner(pos.vec(),map().getRightTop())
+		let botleftres	= findCorner(pos.vec(),map().getLeftBot())
 		
-		return null
+		if toprightres==null or botleftres==null
+			error("Please place 2 footmans to indicate level corners")		
 		
-	/** Free memory, PLEASE DO THIS! */
+		Level level		= new Level
+		level.pos		= botleftres.getPos()
+		level.size		= toprightres.getPos() - level.pos
+		
+		toprightres.remove()
+		botleftres.remove()
+		
+		SetRect(tempR,level.pos.x,level.pos.y,level.maxPos().x,level.maxPos().y)
+		level.actors	= CreateGroup()
+		GroupEnumUnitsInRect(level.actors,tempR,null)
+		for unit u in level.actors
+			u.setOwner(Player(PLAYER_NEUTRAL_PASSIVE),false)
+			u.addAbility(LOCUST_ID)	/* prevent being picked into groups */
+			u.hide()				/* don't draw model */
+			u.pause()				/* save CPU */
+		
+		return level
+		
+	/** find closest corner indicator given two vecs */
+	private static function findCorner(vec2 minpos,vec2 maxpos) returns unit
+		 SetRect(tempR,minpos.x,minpos.y,maxpos.x,maxpos.y)
+		 real mindist	= 999999
+		 unit result	= null
+		 forUnitsInRect(tempR,(unit u) -> begin
+		 	if u.getTypeId()==UID_LEVEL_CORNER
+			 	let dist	= u.getPos().distToVec(minpos)
+			 	if dist<mindist
+					mindist	= dist
+					result	= u
+		 end)
+		 return result
+		
+	/** free memory (disables levelconstructor)
+	not using all the data before this is considered an error */
 	static function cleanUp()
-		while arrs.getSize()>0
-			destroy arrs.pop()
-		destroy arrs
+		for int i=0 to llCount-1
+			if lvlMids[i].getSize()>0
+				error(lvlMids[i].getSize().toString()+" peasant(s) were left unregistered")
+			destroy lvlMids[i]
+		RemoveRect(tempR)
 
-	/** If you want this thingy to actually work */
+	/** initialize levelconstructor */
 	static function doInit()
-		GroupEnumUnitsInRect(ENUM_GROUP,bj_mapInitialPlayableArea,null)
-		for unit u from ENUM_GROUP
-			
-			let key		= u.getTypeId()
-			var arr		= uidLists.loadInt(key) castTo ListArr
-			if arr==null
-				arr		= new ListArr
-				uidLists.saveInt(key,arr castTo int)
-				arrs.push(arr)
-			
-			// !! RED PEASANTS ARE LEVEL CORNERS !!
-			var i		= GetPlayerId(u.getOwner())-1
-			if i<0
-				arr.reds.add(u)
-			else
-				arr.stack[i].push(u)
-	
-	static function getClosest(vec2 mid,ListArr arr) returns unit
-		
-		real nearest			= 1000000.0
-		unit result				= null
-		
-		let iterator			= arr.reds.iterator()
-		var entry				= iterator.current
-	
-		while iterator.hasNext()
-			let u				= iterator.next()
-			let pos				= u.getPos()
-			let dist			= (pos.x-mid.x)*(pos.x-mid.x) + (pos.y-mid.y)*(pos.y-mid.y)
-			if dist<nearest
-				nearest			= dist
-				entry			= iterator.current
-				result			= u
-		
-		if result!=null
-			iterator.current	= entry
-			iterator.remove()
-		iterator.close()
-		
-		return result
+		tempR	= Rect(0,0,0,0)
+		for int i=0 to llCount-1
+			lvlMids[i]	= new Stack<Position>
+		forUnitsInRect(bj_mapInitialPlayableArea,(unit u) -> begin
+			if u.getTypeId()==UID_LEVEL_MIDPOS
+				let i = u.getOwner().getId()
+				if i>=llCount
+					error("Peasant owner id is too high: "+i.toString())
+				lvlMids[i].push(new Position(u.getPos()))
+				u.remove()
+		end)

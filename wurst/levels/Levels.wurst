@@ -3,7 +3,7 @@ package Levels
 // ---------------
 
 import public Level
-import LevelConstructor
+import initlater LevelConstructor
 
 // ---------------
 

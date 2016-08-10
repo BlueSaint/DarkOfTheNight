@@ -3,63 +3,64 @@ package Client
 // ---------------
 
 import LinkedList
-import Debug
 
 // ---------------
 
-public abstract class ClientBound extends Debug
-
-	private Client parent
-	
-	override function getName() returns string
-		return "ClientBound"
-		
-	construct(Client parent)
-		this.parent	= parent
-		parent.bounds.add(this)
-		
-	ondestroy
-		parent.bounds.remove(this)
+/** used to catch various client-related events */
+public interface ClientEvent
+	function execute(Client c)
 
 // ---------------
 
-public class Client extends Debug
+LinkedList<ClientEvent> onClientLeave	= new LinkedList<ClientEvent>
 
-	protected LinkedList<ClientBound> bounds
+function LinkedList<ClientEvent>.execute(Client c)
+	for ClientEvent e in this
+		e.execute(c)
+
+/** if a client leaves, given function will be run */
+public function registerOnClientLeave(ClientEvent e)
+	onClientLeave.add(e)
+
+// ---------------
+
+/** client means human player */
+public class Client
+
+	/** local client 
+	obvious desync warning */
 	static Client lcl
+	
+	/** player handle */
 	player p
+	
 	private trigger dt
 	
-	override function getName() returns string
-		return "Client"
-		
+	/** prints a message for the client to see */	
 	function print(string msg,real dur)
 		printTimedToPlayer(msg,dur,p)
-		
+	
 	construct(player p)
 		this.p		= p
-		this.bounds	= new LinkedList<ClientBound>
 		this.dt		= CreateTrigger()
 		dt.registerPlayerEvent(p,EVENT_PLAYER_LEAVE)
 		dt.addCondition(Condition(function onClientLeave))
 		
 	ondestroy
-		for ClientBound cb in bounds
-			destroy cb
-		destroy bounds
+		onClientLeave.execute(this)
 		dt.destr()
 
 // ---------------
 
-public LinkedList<Client> clients = new LinkedList<Client>
-public function LinkedList<Client>.getFromPlayer(player p) returns Client
-	for Client c in this
+public constant LinkedList<Client> clients = new LinkedList<Client>
+public function playerToClient(player p) returns Client
+	for Client c in clients
 		if c.p==p
 			return c
 	return null
 
 function onClientLeave() returns boolean
-	let c=clients.getFromPlayer(GetTriggerPlayer())
+	let c=playerToClient(GetTriggerPlayer())
 	Client.lcl.print(c.p.getNameColored()+" has left the game",15)
 	clients.remove(c)
 	destroy c
@@ -68,12 +69,8 @@ function onClientLeave() returns boolean
 // ---------------
 
 init
-	setDebugLvl(0)
-	
-
 	let lcl=GetLocalPlayer()
 	for int i=0 to 11
-		wantDebug[i]=true
 		let p=Player(i)
 		
 		if	p.getController()==MAP_CONTROL_USER
@@ -82,5 +79,3 @@ init
 			clients.addtoStart(new Client(p))
 			if p==lcl
 				Client.lcl=clients.get(0)
-	
-	Client.lcl.print("Welcome to |cffffaa00Dark of the Night|r, "+Client.lcl.p.getNameColored()+"!\n|cffaa55ff    Setting things up...",10)

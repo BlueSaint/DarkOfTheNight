@@ -1,0 +1,4 @@
+package UnitID
+
+public constant int UID_LEVEL_MIDPOS	= 'hpea'
+public constant int UID_LEVEL_CORNER	= 'hfoo'
