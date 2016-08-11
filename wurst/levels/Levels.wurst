@@ -30,7 +30,7 @@ init
 	LevelConstructor.doInit()
 	
 	// some extra processing is done to have the order randomized
-	for int i=0 to llCount-1
+	for i=0 to llCount-1
 		
 		Level array temp
 		int length			= 0

@@ -57,7 +57,7 @@ public abstract class LevelConstructor
 		SetRect(tempR,level.pos.x,level.pos.y,level.maxPos().x,level.maxPos().y)
 		level.actors	= CreateGroup()
 		GroupEnumUnitsInRect(level.actors,tempR,null)
-		for unit u in level.actors
+		for u in level.actors
 			u.setOwner(Player(PLAYER_NEUTRAL_PASSIVE),false)
 			u.addAbility(LOCUST_ID)	/* prevent being picked into groups */
 			u.hide()				/* don't draw model */
@@ -82,7 +82,7 @@ public abstract class LevelConstructor
 	/** free memory (disables levelconstructor)
 	not using all the data before this is considered an error */
 	static function cleanUp()
-		for int i=0 to llCount-1
+		for i=0 to llCount-1
 			if lvlMids[i].getSize()>0
 				error(lvlMids[i].getSize().toString()+" peasant(s) were left unregistered")
 			destroy lvlMids[i]
@@ -91,7 +91,7 @@ public abstract class LevelConstructor
 	/** initialize levelconstructor */
 	static function doInit()
 		tempR	= Rect(0,0,0,0)
-		for int i=0 to llCount-1
+		for i=0 to llCount-1
 			lvlMids[i]	= new Stack<Position>
 		forUnitsInRect(bj_mapInitialPlayableArea,(unit u) -> begin
 			if u.getTypeId()==UID_LEVEL_MIDPOS

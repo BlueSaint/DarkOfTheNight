@@ -17,11 +17,11 @@ public class Event<T>
 	private LinkedList<int>	listeners
 	
 	function execute(T t)
-		for int i in listeners
+		for i in listeners
 			(i castTo EventListener<T>).run(t)
 	
 	function execute(T t,int data)
-		for int i in listeners
+		for i in listeners
 			(i castTo RichEventListener<T>).run(t,data)
 	
 	function register(EventListener<T> listener)

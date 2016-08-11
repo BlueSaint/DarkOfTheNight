@@ -3,9 +3,9 @@ package Main
 /*	this component is the entry point of the framework.	*/
 
 import DifficultyPick
+import ClosureTimers
 
 init
-	getTimer().start(0,()->begin
-		GetExpiredTimer().release()
+	doAfter(0,() -> begin
 		doDifficultyPick()
 	end)

@@ -50,14 +50,14 @@ public class Client
 function calcSpawnAngles()
 	let count	= clients.getSize().toReal()
 	real index	= 0
-	for Client c in clients
+	for c in clients
 		index++
 		c.spawnAngle	= angle(PI2*count/index)
 
 public constant LinkedList<Client> clients = new LinkedList<Client>
 	
 public function player.toClient() returns Client
-	for Client c in clients
+	for c in clients
 		if c.p==this
 			return c
 	return null
@@ -73,7 +73,7 @@ function onClientLeave() returns boolean
 
 init
 	let lcl=GetLocalPlayer()
-	for int i=0 to 11
+	for i=0 to 11
 		let p=Player(i)
 		
 		if	p.getController()==MAP_CONTROL_USER

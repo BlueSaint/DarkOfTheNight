@@ -1,6 +1,7 @@
 package Poll
 
 import Client
+import ClosureTimers
 import LinkedList
 import public ArrayList
 import Event
@@ -23,21 +24,19 @@ public abstract class Poll
 	
 	// ----------------
 	
-	protected timer timeout
+	protected bool ontimeout
 		
 	/** time expires - event */
 	protected function doTimeout()
-		for Client c in targets
+		for c in targets
 			evClientTimeout.run(c)
 		destroy this
 	
 	/** poll will expire after given amount of time */
 	protected function setTimeout(real time)
-		if timeout==null
-			timeout	= getTimer()
-			..setData(this castTo int)
-		timeout.start(time,() -> begin
-			(GetExpiredTimer().getData() castTo Poll).doTimeout()
+		doAfter(time,() -> begin
+			if ontimeout
+				doTimeout()
 		end)
 	
 	// ----------------
@@ -46,7 +45,7 @@ public abstract class Poll
 	
 	/** adds client so she/he can cast vote */
 	protected function addClient(Client c)
-		if timeout!=null
+		if ontimeout
 			error("Please init clients before timeout")
 		targets.add(c)
 		
@@ -82,18 +81,17 @@ public abstract class Poll
 	// ----------------
 		
 	construct()
-		this.evClientFinish	= (Client c) -> begin
+		evClientFinish	= (Client c) -> begin
 		end
-		this.evClientTimeout = (Client c) -> begin
+		evClientTimeout = (Client c) -> begin
 		end
-		this.evFinish 	= (int i) -> begin
+		evFinish 		= (int i) -> begin
 		end
-		this.targets	= new LinkedList<Client>
-		this.votes		= new ArrayList<int>
-		this.timeout	= null
+		targets			= new LinkedList<Client>
+		votes			= new ArrayList<int>
+		ontimeout		= false
 		
 	ondestroy
-		if timeout!=null
-			timeout.release()
+		ontimeout		= false
 		destroy targets
 		evFinish.run(votes castTo int)

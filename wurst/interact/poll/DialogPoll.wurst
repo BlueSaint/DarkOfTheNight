@@ -1,6 +1,7 @@
 package DialogPoll
 
 import Poll
+import ClosureTimers
 import Client
 
 /** dialog-based poll (takes control) */
@@ -30,7 +31,7 @@ public class DialogPoll extends Poll
 		
 	/** time expires - event */
 	private override function doTimeout()
-		for Client c in targets
+		for c in targets
 			DialogDisplay(c.p,d,false)
 		super.doTimeout()
 		
@@ -54,13 +55,8 @@ public class DialogPoll extends Poll
 				else
 					DialogSetMessage(d,title+"\n    |cffffaa22"+mins.toString()+":"+secs.toString())
 					
-				if timeout==null
-					timeout	= getTimer()
-					..setData(this castTo int)
-				timeout.start(1,() -> begin
-					let inst	= GetExpiredTimer().getData() castTo DialogPoll
-					inst.time--
-					inst.setTimeout(inst.time)
+				doAfter(1,() -> begin
+					setTimeout(this.time-1)
 				end)
 			else
 				super.setTimeout(time)

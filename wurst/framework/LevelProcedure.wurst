@@ -36,7 +36,7 @@ function continueLevelProcedure()
 			Client.lcl.print("|cffffff00The level pool is empty",60)
 		return
 	level.wake()
-	for Escaper e in escapers
+	for e in escapers
 		if e.exists()
 			e.u.setPos(level.getSpawnPos(e.owner()))
 		else
