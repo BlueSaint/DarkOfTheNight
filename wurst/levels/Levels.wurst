@@ -1,5 +1,8 @@
 package Levels
 
+/*	Level - package declares various level concepts,
+	this package defines those concepts				*/
+
 // ---------------
 
 import public Level
@@ -7,15 +10,15 @@ import initlater LevelConstructor
 
 // ---------------
 
-constant llEasy				= new LevelList(LevelType("Easy",color(20,255,20)))
-constant llMedium			= new LevelList(LevelType("Medium",color(255,205,20)))
-constant llHard				= new LevelList(LevelType("Hard",color(255,105,0)))
-constant llBrutal			= new LevelList(LevelType("Brutal",color(205,15,0)))
-constant llImpossible		= new LevelList(LevelType("Impossible",color(175,0,105)))
+public constant llEasy		= new LevelList("Easy",color(20,255,20))
+public constant llMedium	= new LevelList("Medium",color(255,205,20))
+public constant llHard		= new LevelList("Hard",color(255,105,0))
+public constant llBrutal	= new LevelList("Brutal",color(205,15,0))
+public constant llImpossible= new LevelList("Impossible",color(175,0,105))
 
 public constant llCount		= 5
 
-LevelList array llArray
+public LevelList array llArray
 
 init
 	llArray[0]				= llEasy
@@ -26,7 +29,7 @@ init
 	
 	LevelConstructor.doInit()
 	
-	// Some extra processing is done to have the order randomized
+	// some extra processing is done to have the order randomized
 	for int i=0 to llCount-1
 		
 		Level array temp
@@ -42,7 +45,7 @@ init
 		while length>0
 			length--
 			int j			= GetRandomInt(0,length)
-			llArray[0].queue.enqueue(temp[j])
+			llArray[0].addLevel(temp[j])
 			temp[j]			= temp[length]
 	
 	LevelConstructor.cleanUp()

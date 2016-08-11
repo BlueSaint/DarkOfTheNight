@@ -1,0 +1,18 @@
+package LevelWaker
+
+/*	initially levels' actors are halted to
+	save CPU. this package "wakes" them		*/
+
+import Level
+
+// ---------------
+
+/** create actors demanded by level */
+public function Level.wake()
+	
+
+// ---------------
+	
+/** remove actors from level */
+public function Level.halt()
+	

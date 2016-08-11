@@ -1,0 +1,80 @@
+package EscaperPickerObj
+
+/*	this package is on halt due to object editing being a bugfest	*/
+
+import EscaperObj
+import Event
+import HashMap
+import Client
+import Assets
+
+//import AbilityObjEditing
+//import ObjGenHelper
+
+public constant Event<Client> evClientPick	= new Event<Client>
+constant efOnPick				= Other.massteleportcaster
+constant escaperPickerId		= 'e000'
+HashMap<int,EscaperObj> map		= new HashMap<int,EscaperObj>
+
+// vv TEMPORARY vv
+init
+	if escaperObjs.getSize()!=1
+		error("Package is outdated, incorrect escaperObj size of "+escaperObjs.getSize().toString())
+	map.put('A000',escaperObjs.get(0))
+// ^^ TEMPORARY ^^
+
+//** teleporter from which you pick your escaper
+public class EscaperPicker
+	
+	static thistype array arr
+	
+	Client c
+	unit u
+	
+	function exists() returns boolean
+		return u!=null
+	
+	ondestroy
+		addEffect(efOnPick,u.getPos())
+		u.remove()
+		u		= null
+		let o	= map.get(GetSpellAbilityId())
+		if o==null
+			error("Unhandled event occured")
+		evClientPick.execute(c,o castTo int)
+	
+	construct(player p,vec2 pos)
+		u				= createUnit(p,escaperPickerId,pos,angle(0))
+		u.applyEscaperValues()
+		c				= p.toClient()
+		p.select(u)
+		arr[p.getId()]	= this
+		CreateTrigger()
+		..registerUnitEvent(u,EVENT_UNIT_SPELL_EFFECT)
+		..addCondition(Condition(()->begin
+			destroy arr[GetTriggerUnit().getOwner().getId()]
+		end))
+/*
+@compiletime function generateEscaperPicker()
+	if escaperObjs.getSize()>12
+		error("Multiple pages not implemented")
+	int buttonpos	= 0
+	string abils	= ""
+	for EscaperObj o in escaperObjs
+		let id	= ABIL_ID_GEN.next()
+		abils	+= idInteger2IdString(id)+","
+		map.put(id,o)
+		let a	= new AbilityDefinition(id,'ANcl')
+		..setHeroAbility(false)
+		..setLevels(1)
+		..setButtonPositionNormalX(buttonpos mod 4)
+		..setButtonPositionNormalY(buttonpos div 4)
+		..setIconNormal(o.icon)
+		..setHotkeyNormal(qwertyHotkeys[buttonpos])
+		..setRace(Race.Other)
+		..setTooltipNormal(1,"Pick "+o.getStr()+getHotkeyHint(buttonpos))
+		..setTooltipNormalExtended(1,"|cffff4400NOTE: Your choice is permanent; once you pick "+o.name+", you can't repick another character later on")
+		buttonpos++
+	let u	= new UnitDefinition(escaperPickerId,'ewsp')
+	u.setNormalAbilities(abils.substring(0,abils.length()-1))*/
+	

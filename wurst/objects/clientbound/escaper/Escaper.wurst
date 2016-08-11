@@ -1,0 +1,55 @@
+package Escaper
+
+import Client
+import EscaperPickerObj
+import LinkedList
+
+// ---------------
+
+public class Escaper
+	unit u
+	EscaperPicker picker
+	function exists() returns boolean
+		return u!=null
+	function initialize()
+		u	= null
+	construct()
+		error("Please do not instanciate this class")
+
+// ---------------
+
+public function Escaper.iterator() returns EscaperIterator
+	return new EscaperIterator()
+		
+public constant Escaper escapers	= null
+		
+class EscaperIterator
+	LLIterator<Client> iterator
+	construct()
+		this.iterator	= clients.iterator()
+	function hasNext() returns boolean
+		return iterator.hasNext()
+	function next() returns Escaper
+		return iterator.next().escaper()
+	function close()
+		destroy this
+	ondestroy
+		iterator.close()
+
+// ---------------
+
+public function Escaper.owner() returns Client
+	return this castTo int castTo Client
+
+public function Client.escaper() returns Escaper
+	return this castTo int castTo Escaper
+
+// --------------- 
+
+init
+	evClientEnter.register((Client c)->begin
+		c.escaper().initialize()
+	end)
+	evClientLeave.register((Client c)->begin
+		destroy c.escaper()
+	end)

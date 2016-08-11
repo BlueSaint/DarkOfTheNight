@@ -1,0 +1,74 @@
+package EscaperObj
+
+/*	this package contains escaper objects	*/ 
+
+import HeroPreset
+import UnitObjEditing
+import LinkedList
+
+public function unit.applyEscaperValues()
+	this.addAbility(LOCUST_ID)
+	this.show()
+	this.hide()
+	this.removeAbility(LOCUST_ID)
+	this.setPathing(false)
+
+public constant escaperObjs	= new LinkedList<EscaperObj>
+
+public class EscaperObj
+	int id
+	HeroPreset p
+	color col
+	string name
+	string icon
+	
+	function getStr() returns string
+		return col.toColorString()+name+"|r"
+	
+	construct(string name,string icon,color col)
+		this.id		= HERO_ID_GEN.next()
+		this.col	= col
+		this.name	= name
+		this.icon	= icon
+		if compiletime
+			this.p		= new HeroPreset(id,'Hpal',"Escaper")
+			..addProperName(name)
+			..setAttacksEnabled(0)
+			..setIconGameInterface(icon)
+			..setIconScoreScreen(icon)
+			..setStartingAgility(0)
+			..setDefenseBase(2)
+			..setStartingIntelligence(0)
+			..setStartingStrength(0)
+			..setStrengthPerLevel(0)
+			..setAgilityPerLevel(0)
+			..setIntelligencePerLevel(0)
+			..setAcquisitionRange(0)
+			..setTurnRate(3)
+			..setArmorType(ArmorType.Medium)
+			..setHitPointsRegenerationType("none")
+			..setHeroAbilities("")
+		else
+			this.p		= null
+		
+	function finalize()
+		if compiletime
+			p.buildHero()
+			destroy p
+			p			= null
+		escaperObjs.add(this)
+		
+
+init
+	generateEscapers()
+
+@compiletime function generateEscapers()
+	var o		= new EscaperObj("Bob","ReplaceableTextures\\CommandButtons\\BTNPeasant.blp",color(188,33,25))
+	
+	if compiletime
+		o.p
+		..setModelFile("units\\human\\Peasant\\Peasant.mdl")
+	
+	o.finalize()
+
+	

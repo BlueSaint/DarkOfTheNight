@@ -1,15 +1,11 @@
 package Main
 
-//	This component is the entry point of the framework
+/*	this component is the entry point of the framework.	*/
 
-import Client
-import Levels
-
-// ---------------
+import DifficultyPick
 
 init
 	getTimer().start(0,()->begin
-		Client.lcl.print(
-			"Welcome to |cffffaa00Dark of the Night|r, "
-			+ Client.lcl.p.getNameColored(),30)
+		GetExpiredTimer().release()
+		doDifficultyPick()
 	end)

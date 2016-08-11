@@ -1,0 +1,99 @@
+package Poll
+
+import Client
+import LinkedList
+import public ArrayList
+import Event
+		
+// ---------------
+
+/** base class for polls */
+public abstract class Poll
+
+	/** poll is finished
+	argument int is cast from ArrayList<int>,
+	remember to dealloc it */
+	EventListener<int> evFinish
+	
+	/** finished for client */
+	EventListener<Client> evClientFinish
+		
+	/** timeout occured for client */
+	EventListener<Client> evClientTimeout
+	
+	// ----------------
+	
+	protected timer timeout
+		
+	/** time expires - event */
+	protected function doTimeout()
+		for Client c in targets
+			evClientTimeout.run(c)
+		destroy this
+	
+	/** poll will expire after given amount of time */
+	protected function setTimeout(real time)
+		if timeout==null
+			timeout	= getTimer()
+			..setData(this castTo int)
+		timeout.start(time,() -> begin
+			(GetExpiredTimer().getData() castTo Poll).doTimeout()
+		end)
+	
+	// ----------------
+	
+	protected LinkedList<Client> targets
+	
+	/** adds client so she/he can cast vote */
+	protected function addClient(Client c)
+		if timeout!=null
+			error("Please init clients before timeout")
+		targets.add(c)
+		
+	/** removes client so she/he can no longer cast vote
+	private to prevent other components from calling this */
+	private function removeClient(Client c)
+		let check	= targets.getSize()
+		targets.remove(c)
+		if targets.getSize()==check
+			error("Double unregister of "+c.p.getName())
+		evClientFinish.run(c)
+		if targets.getSize()==0
+			destroy this
+	
+	// ----------------
+			
+	private ArrayList<int> votes
+	
+	/** adds new option to the poll */
+	protected function addOption() returns int
+		if targets.getSize()>0
+			error("Please init options before targets")
+		votes.add(0)
+		return votes.getSize()-1
+		
+	/** registers that client voted for option */
+	static int lastVotedOption
+	protected function voteOption(Client c,int i)
+		lastVotedOption	= i
+		votes.set(i,votes.get(i)+1)
+		removeClient(c)
+	
+	// ----------------
+		
+	construct()
+		this.evClientFinish	= (Client c) -> begin
+		end
+		this.evClientTimeout = (Client c) -> begin
+		end
+		this.evFinish 	= (int i) -> begin
+		end
+		this.targets	= new LinkedList<Client>
+		this.votes		= new ArrayList<int>
+		this.timeout	= null
+		
+	ondestroy
+		if timeout!=null
+			timeout.release()
+		destroy targets
+		evFinish.run(votes castTo int)

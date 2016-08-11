@@ -1,0 +1,70 @@
+package DifficultyPick
+
+import Client
+import Poll
+import DialogPoll
+import Levels
+import LevelRoll
+import LevelProcedure
+
+// ---------------
+
+/**	id		= position in llArray
+	votes	= weight*/
+tuple Sort(int id,int votes)
+
+constant real endDelay	= 0
+
+/** end of poll (give poll results) */
+function onEnd(ArrayList<int> results)
+	Sort array sort
+	for int i=0 to llCount-1
+		sort[i]		= Sort(i,results.get(i))
+	destroy results
+	for int i=0 to llCount-1
+		for int j=i+1 to llCount-1
+			if sort[i].votes<sort[j].votes or sort[i].votes==sort[j].votes and sort[i].id>sort[j].id
+				let swap	= sort[j]
+				sort[j]		= sort[i]
+				sort[i]		= swap
+	Client.lcl.print("Poll results:",20)
+	for int i=0 to llCount-1
+		if sort[i].votes>0
+			LevelRoll.addWanted(llArray[sort[i].id])
+			Client.lcl.print((i+1).toString()+". "+llArray[sort[i].id].getString(),20)
+		else
+			LevelRoll.addRest(llArray[sort[i].id])
+			Client.lcl.print("-- "+llArray[sort[i].id].getString(),20)
+	getTimer().start(endDelay,()->begin
+		GetExpiredTimer().release()
+		CinematicFadeBJ(bj_CINEFADETYPE_FADEIN,1,"ReplaceableTextures\\CameraMasks\\Black_mask.blp",0,0,0,0)
+		startLevelProcedure()
+	end)
+
+// ---------------
+
+bool firstfade	= true
+
+/** start of the framework */
+public function doDifficultyPick()
+	if firstfade
+		firstfade	= false
+		CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT,0,"ReplaceableTextures\\CameraMasks\\Black_mask.blp",0,0,0,0)
+	else
+		CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT,1,"ReplaceableTextures\\CameraMasks\\Black_mask.blp",0,0,0,0)
+	DialogPoll poll	= new DialogPoll("Vote for difficulty")
+	for int i=0 to llCount-1
+		if poll.addOption(llArray[i].getString())!=i
+			error("Poll is broken")
+	for Client c in clients
+		poll.addClient(c)
+	poll.setTimeout(30)
+	poll.evClientFinish	= (Client c) -> begin
+		if Client.lcl==c
+			Client.lcl.print("You voted for "+llArray[Poll.lastVotedOption].getString(),10)
+		else
+			Client.lcl.print(c.p.getNameColored()+" voted for "+llArray[Poll.lastVotedOption].getString(),10)
+	end
+	poll.evFinish	= (int results) -> begin
+		onEnd(results castTo ArrayList<int>)
+	end

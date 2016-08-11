@@ -1,0 +1,85 @@
+package DialogPoll
+
+import Poll
+import Client
+
+/** dialog-based poll (takes control) */
+public class DialogPoll extends Poll
+
+	/** dialogs/dialog buttons will store data with this Table */
+	private static Table dialogData	= new Table
+
+	private string title
+	private dialog d
+	private trigger t
+		
+	// ---------------
+	
+	/** adds client so she/he can cast vote */
+	override function addClient(Client c)
+		super.addClient(c)
+		DialogDisplay(c.p,d,true)
+	
+	/** client casts vote - event */
+	private function doClickEvent(Client c)
+		let i	= dialogData.loadInt(GetClickedButton().getHandleId())-1
+		if i==-1	// load result was 0 -> unregistered button click
+			error("Unregistered poll button clicked")
+		super.voteOption(c,i)
+		DialogDisplay(c.p,d,false)
+		
+	/** time expires - event */
+	private override function doTimeout()
+		for Client c in targets
+			DialogDisplay(c.p,d,false)
+		super.doTimeout()
+		
+	/** given option will be added to the poll */
+	function addOption(string text) returns int
+		let i		= super.addOption()
+		dialogData.saveInt(DialogAddButton(d,text,0).getHandleId(),i+1)	// 0 is reserved for errors
+		return i
+		
+	/** poll will expire after given amount of time */
+	real time
+	override function setTimeout(real time)
+		if not bj_isSinglePlayer
+			if time>=1.0
+				this.time	= time
+				
+				int mins	= (time/60).toInt()
+				int secs	= time.toInt()-mins*60
+				if secs<10
+					DialogSetMessage(d,title+"\n    |cffffaa22"+mins.toString()+":0"+secs.toString())
+				else
+					DialogSetMessage(d,title+"\n    |cffffaa22"+mins.toString()+":"+secs.toString())
+					
+				if timeout==null
+					timeout	= getTimer()
+					..setData(this castTo int)
+				timeout.start(1,() -> begin
+					let inst	= GetExpiredTimer().getData() castTo DialogPoll
+					inst.time--
+					inst.setTimeout(inst.time)
+				end)
+			else
+				super.setTimeout(time)
+		
+	// ---------------
+	
+	construct(string title)
+		super()
+		this.d			= DialogCreate()
+		this.title		= title
+		DialogSetMessage(d,title)
+		dialogData.saveInt(d.getHandleId(),this castTo int)
+		this.t			= CreateTrigger()
+		..registerDialogEvent(d)
+		..addCondition(Condition(()->begin
+			(dialogData.loadInt(GetClickedDialog().getHandleId()) castTo DialogPoll)
+			.doClickEvent(GetTriggerPlayer().toClient())
+		end))
+	
+	ondestroy
+		t.destr()
+		DialogDestroy(d)

@@ -2,34 +2,26 @@ package Client
 
 // ---------------
 
+import Event
 import LinkedList
 
 // ---------------
 
-/** used to catch various client-related events */
-public interface ClientEvent
-	function execute(Client c)
-
-// ---------------
-
-LinkedList<ClientEvent> onClientLeave	= new LinkedList<ClientEvent>
-
-function LinkedList<ClientEvent>.execute(Client c)
-	for ClientEvent e in this
-		e.execute(c)
-
-/** if a client leaves, given function will be run */
-public function registerOnClientLeave(ClientEvent e)
-	onClientLeave.add(e)
+public constant Event<Client> evClientLeave	= new Event<Client>
+public constant Event<Client> evClientEnter	= new Event<Client>
 
 // ---------------
 
 /** client means human player */
 public class Client
 
+	angle spawnAngle
+
 	/** local client 
 	obvious desync warning */
 	static Client lcl
+	function isLocal() returns boolean
+		return this==lcl
 	
 	/** player handle */
 	player p
@@ -45,25 +37,36 @@ public class Client
 		this.dt		= CreateTrigger()
 		dt.registerPlayerEvent(p,EVENT_PLAYER_LEAVE)
 		dt.addCondition(Condition(function onClientLeave))
+		evClientEnter.execute(this)
 		
 	ondestroy
-		onClientLeave.execute(this)
+		clients.remove(this)
+		evClientLeave.execute(this)
 		dt.destr()
 
 // ---------------
 
-public constant LinkedList<Client> clients = new LinkedList<Client>
-public function playerToClient(player p) returns Client
+/** sets the spawnAngle for each Client */
+function calcSpawnAngles()
+	let count	= clients.getSize().toReal()
+	real index	= 0
 	for Client c in clients
-		if c.p==p
+		index++
+		c.spawnAngle	= angle(PI2*count/index)
+
+public constant LinkedList<Client> clients = new LinkedList<Client>
+	
+public function player.toClient() returns Client
+	for Client c in clients
+		if c.p==this
 			return c
 	return null
 
 function onClientLeave() returns boolean
-	let c=playerToClient(GetTriggerPlayer())
+	let c=GetTriggerPlayer().toClient()
 	Client.lcl.print(c.p.getNameColored()+" has left the game",15)
-	clients.remove(c)
 	destroy c
+	calcSpawnAngles()
 	return false
 
 // ---------------
@@ -76,6 +79,7 @@ init
 		if	p.getController()==MAP_CONTROL_USER
 			and p.getSlotState()==PLAYER_SLOT_STATE_PLAYING
 			
-			clients.addtoStart(new Client(p))
+			clients.add(new Client(p))
 			if p==lcl
 				Client.lcl=clients.get(0)
+	calcSpawnAngles()

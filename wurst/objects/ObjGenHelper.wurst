@@ -1,0 +1,25 @@
+package ObjGenHelper
+
+/*	this package contains useful assets
+	for your object generation needs	*/
+	
+public string array qwertyHotkeys
+
+public constant tooltipDefHl	= "|cffffcc00"
+
+public function getHotkeyHint(int buttonpos) returns string
+	return " ["+tooltipDefHl+qwertyHotkeys[buttonpos]+"|r]"
+
+init
+	qwertyHotkeys[0]	= "q"
+	qwertyHotkeys[1]	= "w"
+	qwertyHotkeys[2]	= "e"
+	qwertyHotkeys[3]	= "r"
+	qwertyHotkeys[4]	= "a"
+	qwertyHotkeys[5]	= "s"
+	qwertyHotkeys[6]	= "d"
+	qwertyHotkeys[7]	= "f"
+	qwertyHotkeys[8]	= "z"
+	qwertyHotkeys[9]	= "x"
+	qwertyHotkeys[10]	= "c"
+	qwertyHotkeys[11]	= "v"

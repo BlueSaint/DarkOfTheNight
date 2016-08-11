@@ -1,0 +1,37 @@
+package Event
+
+/*	the map revolves around interaction of
+	various components, this package makes
+	it a lot easier							*/
+
+import LinkedList
+
+public interface EventListener<T>
+	function run(T t)
+		
+public interface RichEventListener<T>
+	function run(T t,int data)
+
+public class Event<T>
+	
+	private LinkedList<int>	listeners
+	
+	function execute(T t)
+		for int i in listeners
+			(i castTo EventListener<T>).run(t)
+	
+	function execute(T t,int data)
+		for int i in listeners
+			(i castTo RichEventListener<T>).run(t,data)
+	
+	function register(EventListener<T> listener)
+		listeners.add(listener castTo int)
+		
+	function register(RichEventListener<T> listener)
+		listeners.add(listener castTo int)
+		
+	ondestroy
+		destroy listeners
+	
+	construct()
+		listeners	= new LinkedList<int>

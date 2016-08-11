@@ -1,0 +1,46 @@
+package LevelRoll
+
+import Queue
+import Levels
+	
+// ---------------
+
+constant Queue<LevelList> listWanted	= new Queue<LevelList>
+constant Queue<LevelList> listRest		= new Queue<LevelList>
+	
+// ---------------
+
+function Queue<LevelList>.continue() returns Level
+	if this.getSize()==0
+		return null
+	if this.peek().isEmpty()
+		this.dequeue()
+		return this.continue()
+	return this.peek().rotate()
+	
+// ---------------
+
+public abstract class LevelRoll
+	
+	static function addWanted(LevelList list)
+		list.reset()
+		listWanted.enqueue(list)
+	
+	static function continueWanted() returns Level
+		return listWanted.continue()
+		
+	static function flushWanted()
+		destroy listWanted
+		
+	// ---------------
+	
+	static function addRest(LevelList list)
+		list.reset()
+		listWanted.enqueue(list)
+		
+	static function continueRest() returns Level
+		return listRest.continue()
+		
+	static function flushRest()
+		destroy listRest
+		

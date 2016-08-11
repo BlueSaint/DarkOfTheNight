@@ -1,0 +1,26 @@
+package WurstExportedObjects_w3a
+import ObjEditingNatives
+
+//modifiedTable: 
+
+@compiletime function create_w3a_A000()
+	let u = createObjectDefinition("w3a", 'A000', 'ANcl')
+	u.setLvlDataString("atat", 0, 0, "")
+	u.setLvlDataString("ata0", 0, 0, "")
+	u.setLvlDataString("aart", 0, 0, "ReplaceableTextures\\CommandButtons\\BTNPeasant.blp")
+	u.setLvlDataString("aeat", 0, 0, "")
+	u.setLvlDataString("acat", 0, 0, "")
+	u.setLvlDataString("aani", 0, 0, "")
+	u.setLvlDataInt("abpx", 0, 0, 0)
+	u.setLvlDataInt("alev", 0, 0, 1)
+	u.setLvlDataUnreal("Ncl1", 1, 1, 0.0)
+	u.setLvlDataString("Ncl6", 1, 6, "absorb")
+	u.setLvlDataUnreal("Ncl4", 1, 4, 0.0)
+	u.setLvlDataInt("Ncl3", 1, 3, 1)
+	u.setLvlDataInt("aher", 0, 0, 0)
+	u.setLvlDataString("ahky", 0, 0, "Q")
+	u.setLvlDataString("atp1", 1, 0, "Pick Bob [|cffffcc00Q|r]")
+	u.setLvlDataString("anam", 0, 0, "Pick Bob")
+	u.setLvlDataString("aub1", 1, 0, "NOTE: Your pick will be permanent.")
+
+

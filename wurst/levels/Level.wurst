@@ -3,27 +3,62 @@ package Level
 // ---------------
 
 import Queue
+import Client
 
 // ---------------
+
+/** dist from spawn center to spawn locations */
+constant real spawnOffset	= 50
 
 public class Level
 	vec2 pos
 	vec2 size
+	vec2 start
 	function maxPos() returns vec2
 		return vec2(pos.x+size.x,pos.y+size.y)
+	function getSpawnPos(Client c) returns vec2
+		return start + c.spawnAngle.toVec(spawnOffset)
 	group actors
-
-// ---------------
-	
-public tuple LevelType(string id,color idcol)
 
 // ---------------
 	
 public class LevelList
 	
-	Queue<Level> queue
-	LevelType levelType
+	private Queue<Level> stash
+	private Queue<Level> queue
+	string id
+	color idcol
 	
-	construct(LevelType levelType)
-		this.levelType	= levelType
+	/** registers given level under LevelList */
+	function addLevel(Level level)
+		queue.enqueue(level)
+	
+	/** returns defined title of levellist */
+	function getString() returns string
+		return idcol.toColorString()+id+"|r"
+	
+	construct(string id,color idcol)
+		this.id			= id
+		this.idcol		= idcol
 		this.queue		= new Queue<Level>
+		this.stash		= new Queue<Level>
+	
+	/** returns whether the LevelList is empty */
+	function isEmpty() returns bool
+		return queue.getSize()==0
+	
+	/** all the possible rotation will be reset */
+	function reset()
+		Queue<Level> old	= queue
+		queue				= new Queue<Level>
+		while stash.getSize()>0
+			queue.enqueue(stash.dequeue())
+		while old.getSize()>0
+			queue.enqueue(old.dequeue())
+		destroy old
+	
+	/** returns rotated level */
+	function rotate() returns Level
+		let level	= queue.dequeue()
+		stash.enqueue(level)
+		return level
