@@ -1,0 +1,25 @@
+package Actor
+
+/*	this package manages the construction
+	of all the actors you see on levels		*/
+
+import HashMap
+import Listenable
+
+interface ActorConstructor
+	function run(unit u) returns Actor
+
+HashMap<int,ActorConstructor> constructors	= new HashMap<int,ActorConstructor>
+
+public abstract class Actor extends Listenable
+
+public function getActor(unit u) returns Actor
+	let constructor	= constructors.get(u.getTypeId())
+	if constructor==null
+		return null
+	return constructors.get(u.getTypeId()).run(u)
+	
+public function registerActorConstructor(int uid,ActorConstructor constructor)
+	if constructors.get(uid)!=null
+		error("Unit id is occupied")
+	constructors.put(uid,constructor)

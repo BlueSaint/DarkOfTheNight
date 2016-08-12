@@ -2,10 +2,10 @@ package LevelConstructor
 
 // ---------------
 
+import UnitID
 import Levels
 import Stack
 import ClosureForGroups
-import UnitID
 
 // ---------------
 
@@ -40,14 +40,16 @@ public abstract class LevelConstructor
 		if lvlMids[t].getSize()==0
 			return null
 		
-		let pos			= lvlMids[t].pop()
-		let toprightres	= findCorner(pos.vec(),map().getRightTop())
-		let botleftres	= findCorner(pos.vec(),map().getLeftBot())
+		Level level		= new Level
+		level.start		= lvlMids[t].peek().vec()
+		destroy lvlMids[t].pop()
+		
+		let toprightres	= findCorner(level.start,map().getRightTop())
+		let botleftres	= findCorner(level.start,map().getLeftBot())
 		
 		if toprightres==null or botleftres==null
 			error("Please place 2 footmans to indicate level corners")		
 		
-		Level level		= new Level
 		level.pos		= botleftres.getPos()
 		level.size		= toprightres.getPos() - level.pos
 		
@@ -66,18 +68,20 @@ public abstract class LevelConstructor
 		return level
 		
 	/** find closest corner indicator given two vecs */
+	static real fcDist
+	static unit fcResult
 	private static function findCorner(vec2 minpos,vec2 maxpos) returns unit
+		 fcDist		= 999999
+		 fcResult	= null
 		 SetRect(tempR,minpos.x,minpos.y,maxpos.x,maxpos.y)
-		 real mindist	= 999999
-		 unit result	= null
 		 forUnitsInRect(tempR,(unit u) -> begin
-		 	if u.getTypeId()==UID_LEVEL_CORNER
+		 	if u.getTypeId()==getUidLevelCorner()
 			 	let dist	= u.getPos().distToVec(minpos)
-			 	if dist<mindist
-					mindist	= dist
-					result	= u
+			 	if dist<fcDist
+					fcDist		= dist
+					fcResult	= u
 		 end)
-		 return result
+		 return fcResult
 		
 	/** free memory (disables levelconstructor)
 	not using all the data before this is considered an error */
@@ -94,7 +98,7 @@ public abstract class LevelConstructor
 		for i=0 to llCount-1
 			lvlMids[i]	= new Stack<Position>
 		forUnitsInRect(bj_mapInitialPlayableArea,(unit u) -> begin
-			if u.getTypeId()==UID_LEVEL_MIDPOS
+			if u.getTypeId()==getUidLevelMidpos()
 				let i = u.getOwner().getId()
 				if i>=llCount
 					error("Peasant owner id is too high: "+i.toString())

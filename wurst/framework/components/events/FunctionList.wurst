@@ -1,0 +1,37 @@
+package FunctionList
+
+/*	simply a list of functions	*/
+
+import Event
+import LinkedList
+
+// ---------------
+
+public interface Function
+	function run()
+
+// ---------------
+
+public class FunctionList extends Invoker
+	
+	private LinkedList<Function> funcs
+	
+	function execute()
+		for f in funcs
+			f.run()
+			
+	function register(Function f)
+		funcs.add(f)
+		
+	function unregister(Function f)
+		funcs.remove(f)
+		
+	function flush()
+		while funcs.getSize()>0
+			funcs.removeAt(0)
+		
+	construct()
+		funcs	= new LinkedList<Function>
+		
+	ondestroy
+		destroy funcs

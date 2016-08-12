@@ -4,15 +4,52 @@ package LevelWaker
 	save CPU. this package "wakes" them		*/
 
 import Level
+import FunctionList
+import LinkedList
+import Actor
 
 // ---------------
 
-/** create actors demanded by level */
-public function Level.wake()
+FunctionList array listeners
+LinkedList<Actor> array actors
+
+init
+	Level.evOnCreate.register((int i) -> begin
+		listeners[i]	= new FunctionList
+		actors[i]		= new LinkedList<Actor>
+	end)
+
+/** level isn't halted upon completion.
+	instead, functions here are executed */
+public function Level.registerOnFinish(Function f)
+	listeners[this castTo int].register(f)
 	
+public function Level.executeOnFinish()
+	listeners[this castTo int].execute()
+	listeners[this castTo int].flush()
+	
+function Level.addActor(Actor a)
+	actors[this castTo int].add(a)
+	
+function Level.getActors() returns LinkedList<Actor>
+	return actors[this castTo int]
+
+// ---------------
+
+/** create actors as instructed by level */
+public function Level.wake()
+	for u in this.actors
+		let a	= getActor(u)
+		if a==null
+			error("Unknown actor met: "+u.getName()+" ("+idInteger2IdString(u.getTypeId())+")")
+		this.addActor(a)
+		a.evOnDestroy().register(() -> begin
+			this.getActors().remove(a)
+		end)
 
 // ---------------
 	
 /** remove actors from level */
 public function Level.halt()
-	
+	for a in this.getActors()
+		destroy a

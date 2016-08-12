@@ -1,0 +1,68 @@
+package ChatEvent
+
+/*	makes chat commands possible	*/
+
+import Client
+import Debug
+
+// ---------------
+
+string cache		= null
+
+function stringToIndex(string s) returns int
+	cache			= s
+	return 0
+	
+function stringFromIndex(int i) returns string
+	if compiletime and i==0	/* eclipse likes i ... */
+	return cache
+	
+// ---------------
+
+interface Listener
+	function run(player commandOwner,string restOfCommand)
+
+tuple Key(string compare,int length,Listener listener)
+Key array keys
+int keycount		= 0
+
+constant wantDash	= not debug
+
+public abstract class ChatEvent
+
+	static function register(string compare,Listener listener)
+		keys[keycount]	= Key(compare,StringLength(compare),listener)
+		keycount++
+		
+	static function unregister(string compare,Listener listener) returns bool
+		let key		= Key(compare,StringLength(compare),listener)
+		for int i=0 to keycount-1
+			if keys[i]==key
+				keycount--
+				keys[i]	= keys[keycount]
+				return true
+		return false
+
+function Key.matches(string str) returns bool
+	return this.compare==str.substring(0,this.length)
+
+function Key.run(player owner,string str)
+	this.listener.run(owner,str.substring(this.length,str.length()-this.length))
+
+// ---------------
+
+init
+	let	t = CreateTrigger()
+	for c in clients
+		t.registerPlayerChatEvent(c.p,"",false)
+	t.addCondition(Condition(() -> begin
+		let inputOwner	= GetTriggerPlayer()
+		string input	= GetEventPlayerChatString()
+		if wantDash
+			if input.charAt(0)!="-"
+				skip
+			input		= input.substring(1,input.length()-1)
+		for int i=0 to keycount-1
+			if keys[i].matches(input)
+				keys[i].run(inputOwner,input)
+	end))

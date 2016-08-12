@@ -1,0 +1,3 @@
+package Debug
+
+public constant debug	= true

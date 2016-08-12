@@ -2,18 +2,13 @@ package Client
 
 // ---------------
 
-import Event
+import Listenable
 import LinkedList
 
 // ---------------
 
-public constant Event<Client> evClientLeave	= new Event<Client>
-public constant Event<Client> evClientEnter	= new Event<Client>
-
-// ---------------
-
 /** client means human player */
-public class Client
+public class Client extends Listenable
 
 	angle spawnAngle
 
@@ -37,11 +32,9 @@ public class Client
 		this.dt		= CreateTrigger()
 		dt.registerPlayerEvent(p,EVENT_PLAYER_LEAVE)
 		dt.addCondition(Condition(function onClientLeave))
-		evClientEnter.execute(this)
 		
 	ondestroy
 		clients.remove(this)
-		evClientLeave.execute(this)
 		dt.destr()
 
 // ---------------

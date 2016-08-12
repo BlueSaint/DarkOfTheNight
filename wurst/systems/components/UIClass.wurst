@@ -1,0 +1,51 @@
+package UIClass
+
+/*	creates unit index - based class	*/
+
+import public UnitIndexer
+import Event
+
+// ---------------
+
+public module UIClass
+	
+	function getUI() returns UnitIndex
+		return this castTo int castTo UnitIndex
+		
+	function getUnit() returns unit
+		return getUI().getUnit()
+	
+	// ---------------
+		
+	static function fromUI(int ui) returns thistype
+		return ui castTo thistype
+	
+	static function fromUnit(unit u) returns thistype
+		return fromUI(u.getIndex())
+	
+	// ---------------
+	
+	static constant evOnDestroy	= new Event<thistype>
+	static constant evOnCreate	= new Event<thistype>
+	
+	// ---------------
+	
+	static function create(unit u) returns thistype
+		evOnCreate.execute(u.getUnitIndexInstance() castTo int castTo thistype)
+		return fromUnit(u)
+	
+	// ---------------
+		
+	static function remove(unit u)
+		evOnDestroy.execute(fromUnit(u))
+		
+	function remove()
+		evOnDestroy.execute(this)
+		
+	// ---------------
+	
+	construct()
+		error("Do not construct UIClass")
+	
+	ondestroy
+		error("Do not destroy UIClass")

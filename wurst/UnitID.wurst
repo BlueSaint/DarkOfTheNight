@@ -1,4 +1,17 @@
 package UnitID
 
-public constant UID_LEVEL_MIDPOS	= 'hpea'
-public constant UID_LEVEL_CORNER	= 'hfoo'
+/*	for some reason these globals return 0,
+	i have getters in their place for now	*/
+
+constant UID_LEVEL_MIDPOS	= 'hpea'
+constant UID_LEVEL_CORNER	= 'hfoo'
+constant UID_ESCAPER_PICKER	= 'e000'
+
+public function getUidLevelMidpos() returns int
+	return 'hpea'
+	
+public function getUidLevelCorner() returns int
+	return 'hfoo'
+	
+public function getUidEscaperPicker() returns int
+	return 'e000'

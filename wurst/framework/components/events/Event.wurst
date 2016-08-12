@@ -12,7 +12,11 @@ public interface EventListener<T>
 public interface RichEventListener<T>
 	function run(T t,int data)
 
-public class Event<T>
+/**	element that calls listeners */
+public abstract class Invoker
+
+/**	container for either EventListeners or RichEventListeners */
+public class Event<T> extends Invoker
 	
 	private LinkedList<int>	listeners
 	

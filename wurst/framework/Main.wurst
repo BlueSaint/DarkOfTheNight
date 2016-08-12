@@ -6,6 +6,4 @@ import DifficultyPick
 import ClosureTimers
 
 init
-	doAfter(0,() -> begin
-		doDifficultyPick()
-	end)
+	doAfter(0,() -> doDifficultyPick())

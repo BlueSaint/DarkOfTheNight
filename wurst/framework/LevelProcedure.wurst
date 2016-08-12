@@ -4,6 +4,7 @@ package LevelProcedure
 	the framework; the level procedure	*/
 
 import Level
+import Slider
 import LevelRoll
 import Client
 import Escaper
@@ -23,8 +24,10 @@ ContinueFunc currentContinueFunc
 
 // ---------------
 
-Level level		= null
 int levelcount	= 0
+Level level
+
+/**	starts the next level in rotation */
 function continueLevelProcedure()
 	level		= currentContinueFunc.run()
 	levelcount++
@@ -36,31 +39,50 @@ function continueLevelProcedure()
 			Client.lcl.print("|cffffff00The level pool is empty",60)
 		return
 	level.wake()
+	
 	for e in escapers
 		if e.exists()
 			e.u.setPos(level.getSpawnPos(e.owner()))
 		else
-			e.picker	= new EscaperPicker(e.owner().p,level.getSpawnPos(e.owner()))
-			e.u			= e.picker.u
+			e.picker		= new EscaperPicker(e.owner().p,level.getSpawnPos(e.owner()))
+			e.u				= e.picker.u
+			e.picker.evOnPick.register((EscaperObj o) -> begin
+				if e.owner().isLocal()
+					Client.lcl.print("You picked "+o.getStr(),25)
+				else
+					Client.lcl.print(e.owner().p.getNameColored()+" picked "+o.getStr(),25)
+				e.u			= createUnit(e.owner().p,o.id,level.getSpawnPos(e.owner()),angle(270))
+				..applyEscaperValues()
+				e.owner().p.select(e.u)
+				e.picker	= null
+				print("creating for "+e.u.getName()+" - "+Slider.fromUnit(e.u) castTo int.toString())
+				if Slider.create(e.u)!=e.slider()
+					error("Slider/Escaper structure is corrupt")
+			end)
+			
 	PanCameraToTimed(level.start.x,level.start.y,0)
 	Client.lcl.print("Level |cffffaa00#"+levelcount.toString(),25)
-
-// ---------------
-
-function Client.doPick(EscaperObj obj)
-	if this.isLocal()
-		Client.lcl.print("You have picked "+obj.getStr(),20)
-	else
-		Client.lcl.print(this.p.getNameColored()+" has picked "+obj.getStr(),20)
-	this.escaper().u	= createUnit(this.p,obj.id,level.getSpawnPos(this),angle(270))
-	this.p.select(this.escaper().u)
-	this.escaper().picker	= null
+	level.registerOnFinish(()->begin
+		level.halt()
+		continueLevelProcedure()
+	end)
 
 // ---------------
 
 public function startLevelProcedure()
-	evClientPick.register((Client c,int data)->begin
-		c.doPick(data castTo EscaperObj)
-	end)
 	currentContinueFunc		= continueWanted
 	continueLevelProcedure()
+	
+	if bj_isSinglePlayer
+		Slider.evOnDestroy.register((Slider s) -> begin
+			let e		= s.escaper()
+			e.u.revive(level.getSpawnPos(e.owner()),true)
+			e.owner().p.select(e.u)
+			if vec2(GetCameraTargetPositionX(),GetCameraTargetPositionY()).distToVec(level.start)>800
+				PanCameraToTimed(level.start.x,level.start.y,0)
+			if e.slider()!=Slider.create(e.u)
+				error("Slider/Escaper structure is corrupt")
+		end)
+	else
+		error("TODO MET")
+	

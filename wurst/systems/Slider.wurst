@@ -1,0 +1,134 @@
+package Slider
+
+/*	this component manages unit movement on ice	*/
+
+import ClosureTimers
+import ChatEvent
+import Client
+import Debug
+import initlater Escaper
+import UIClass
+
+// ---------------
+
+constant sliderInterval	= 0.03
+
+constant tileIce		= 'Nice'
+constant tileSnow		= 'Nsnw'
+constant tileReverse	= 'Glav'
+constant tileDkIce		= 'Idki'
+
+constant ordStop		= 851972
+constant ordSmart		= 851971
+constant ordPatrol		= 851990
+constant ordMove		= 851986
+
+real iceSpeed			= 9.
+
+// ---------------
+
+public class Slider
+	
+	use UIClass
+	
+	private CallbackPeriodic cb
+	private real propWindow
+	private real turnSpeed
+	private bool normal
+	private trigger turnTrig
+	private unit u
+	real speedOffset
+	
+	// ---------------
+	
+	/**	handles point orders (possible turns) */
+	private function doTurn(vec2 dest)
+		if not normal
+			let order	= GetIssuedOrderId()
+			if order==ordSmart or order==ordSmart or order==ordPatrol
+				vec2 pos	= u.getPos()
+				
+				let tile	= GetTerrainType(pos.x,pos.y)
+				if tile!=tileDkIce
+					if tile==tileReverse
+						u.setFacing(dest.angleTo(pos))
+					else
+						u.setFacing(pos.angleTo(dest))
+				
+				normal		= true	// avoid recursion
+				u.pause()
+				u.issueImmediateOrderById(ordStop)
+				u.unpause()
+				normal		= false
+				
+	// ---------------
+	
+	/**	creates an instance of Slider */
+	private function doCreate()
+		this.u		= getUnit()
+		
+		propWindow	= GetUnitDefaultPropWindow(u)
+		turnSpeed	= GetUnitDefaultTurnSpeed(u)
+		speedOffset	= 0
+		normal		= true
+	
+		cb			= (CallbackPeriodic cb) -> begin
+			vec2 pos	= u.getPos()
+			let tile	= GetTerrainType(pos.x,pos.y)
+			
+			if tile==tileSnow
+				u.kill()
+				remove()
+				
+			else if tile==tileIce or tile==tileDkIce or tile==tileReverse
+				if normal
+					u.setPropWindow(0)
+					u.setTurnSpeed(0)
+					normal	= false
+				u.setPos(pos+u.getFacingAngle().toVec(iceSpeed+speedOffset))
+				
+			else if not normal
+				u.setPropWindow(propWindow)
+				u.setTurnSpeed(turnSpeed)
+				normal	= true
+		end
+		
+		turnTrig	= CreateTrigger()
+		..registerUnitEvent(u,EVENT_UNIT_ISSUED_POINT_ORDER)
+		..addCondition(Condition(()->begin
+			fromUnit(GetTriggerUnit()).doTurn(vec2(GetOrderPointX(),GetOrderPointY()))
+		end))
+		
+		this.cb.start(sliderInterval)
+		
+	// ---------------
+	
+	/**	removes an instance of slider */
+	private function doDestroy()
+		if not normal
+			u.setPropWindow(propWindow)
+			u.setTurnSpeed(turnSpeed)
+		turnTrig.destr()
+		destroy cb
+		
+	// ---------------
+	
+	/**	registers the 2 listeners above */
+	static function doInit()
+		if debug
+			ChatEvent.register("spd",(player p,string arg)->begin
+				let inst			= p.toClient().escaper().slider() 
+				inst.speedOffset	= S2R(arg.trim())
+				print("speed: "+iceSpeed.toString(1)+"+"+inst.speedOffset.toString(1)+" = "+(iceSpeed+inst.speedOffset).toString(1))
+			end)
+		evOnCreate.register((Slider s) -> begin
+			s.doCreate()
+		end)
+		evOnDestroy.register((Slider s) -> begin
+			s.doDestroy()
+		end)
+
+// ---------------
+
+init
+	Slider.doInit()

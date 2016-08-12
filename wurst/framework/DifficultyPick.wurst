@@ -14,7 +14,7 @@ import ClosureTimers
 	votes	= weight*/
 tuple Sort(int id,int votes)
 
-constant real endDelay	= 0
+constant endDelay	= 0.
 
 /** end of poll (give poll results) */
 function onEnd(ArrayList<int> results)
@@ -52,9 +52,9 @@ public function doDifficultyPick()
 		CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT,0,"ReplaceableTextures\\CameraMasks\\Black_mask.blp",0,0,0,0)
 	else
 		CinematicFadeBJ(bj_CINEFADETYPE_FADEOUT,1,"ReplaceableTextures\\CameraMasks\\Black_mask.blp",0,0,0,0)
-	DialogPoll poll	= new DialogPoll("Vote for difficulty")
+	let poll		= new DialogPoll("Vote for difficulty")
 	for i=0 to llCount-1
-		if poll.addOption(llArray[i].getString())!=i
+		if poll.addOption(llArray[i].getStringEx())!=i
 			error("Poll is broken")
 	for c in clients
 		poll.addClient(c)

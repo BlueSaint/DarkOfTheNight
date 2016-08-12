@@ -3,6 +3,7 @@ package Level
 // ---------------
 
 import Queue
+import Listenable
 import Client
 
 // ---------------
@@ -10,7 +11,7 @@ import Client
 /** dist from spawn center to spawn locations */
 constant real spawnOffset	= 50
 
-public class Level
+public class Level extends Listenable
 	vec2 pos
 	vec2 size
 	vec2 start
@@ -36,6 +37,18 @@ public class LevelList
 	/** returns defined title of levellist */
 	function getString() returns string
 		return idcol.toColorString()+id+"|r"
+		
+	/** returns the amount of levels */
+	function getSize() returns int
+		return queue.getSize()+stash.getSize()
+		
+	/** returns descriptibe title of levellist */
+	function getStringEx() returns string
+		let size	= getSize()
+		if size==1
+			return getString()+"\n|cff888888"+size.toString()+" level"
+		else
+			return getString()+"\n|cff888888"+size.toString()+" levels"
 	
 	construct(string id,color idcol)
 		this.id			= id

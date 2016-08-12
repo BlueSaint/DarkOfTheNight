@@ -3,6 +3,7 @@ package EscaperPickerObj
 /*	this package is on halt due to object editing being a bugfest	*/
 
 import EscaperObj
+import UnitID
 import Event
 import HashMap
 import Client
@@ -11,9 +12,7 @@ import Assets
 //import AbilityObjEditing
 //import ObjGenHelper
 
-public constant Event<Client> evClientPick	= new Event<Client>
 constant efOnPick				= Other.massteleportcaster
-constant escaperPickerId		= 'e000'
 HashMap<int,EscaperObj> map		= new HashMap<int,EscaperObj>
 
 // vv TEMPORARY vv
@@ -30,29 +29,37 @@ public class EscaperPicker
 	
 	Client c
 	unit u
+	Event<EscaperObj> evOnPick
 	
 	function exists() returns boolean
 		return u!=null
-	
-	ondestroy
+		
+	function doPick()
 		addEffect(efOnPick,u.getPos())
 		u.remove()
-		u		= null
 		let o	= map.get(GetSpellAbilityId())
 		if o==null
+			u	= null
 			error("Unhandled event occured")
-		evClientPick.execute(c,o castTo int)
+		evOnPick.execute(o)
+		destroy evOnPick
+		destroy this
 	
 	construct(player p,vec2 pos)
-		u				= createUnit(p,escaperPickerId,pos,angle(0))
+		
+		evOnPick		= new Event<EscaperObj>
+		
+		u				= createUnit(p,getUidEscaperPicker(),pos,angle(0))
 		u.applyEscaperValues()
 		c				= p.toClient()
 		p.select(u)
+		
 		arr[p.getId()]	= this
 		CreateTrigger()
 		..registerUnitEvent(u,EVENT_UNIT_SPELL_EFFECT)
 		..addCondition(Condition(()->begin
-			destroy arr[GetTriggerUnit().getOwner().getId()]
+			GetTriggeringTrigger().destr()
+			arr[GetTriggerUnit().getOwner().getId()].doPick()
 		end))
 /*
 @compiletime function generateEscaperPicker()
@@ -75,6 +82,6 @@ public class EscaperPicker
 		..setTooltipNormal(1,"Pick "+o.getStr()+getHotkeyHint(buttonpos))
 		..setTooltipNormalExtended(1,"|cffff4400NOTE: Your choice is permanent; once you pick "+o.name+", you can't repick another character later on")
 		buttonpos++
-	let u	= new UnitDefinition(escaperPickerId,'ewsp')
+	let u	= new UnitDefinition(UID_ESCAPER_PICKER,'ewsp')
 	u.setNormalAbilities(abils.substring(0,abils.length()-1))*/
 	

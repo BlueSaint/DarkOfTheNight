@@ -8,8 +8,8 @@ import LinkedList
 
 public function unit.applyEscaperValues()
 	this.addAbility(LOCUST_ID)
-	this.show()
 	this.hide()
+	this.show()
 	this.removeAbility(LOCUST_ID)
 	this.setPathing(false)
 
@@ -45,6 +45,9 @@ public class EscaperObj
 			..setIntelligencePerLevel(0)
 			..setAcquisitionRange(0)
 			..setTurnRate(3)
+			..setUnitSoundSet("Peasant")
+			..setSelectionScale(1)
+			..setCollisionSize(0)
 			..setArmorType(ArmorType.Medium)
 			..setHitPointsRegenerationType("none")
 			..setHeroAbilities("")

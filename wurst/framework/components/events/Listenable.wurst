@@ -1,0 +1,39 @@
+package Listenable
+
+/*	takes the practice of events even further,
+	by allowing instance-based events			*/
+
+import Event
+import FunctionList
+import Queue
+
+// ---------------
+
+/**	makes it able to create events for individual instances.
+	also gives you evOnCreate, evOnAnyDestroy and evOnDestroy	*/
+public abstract class Listenable
+
+	static constant evOnCreate		= new Event<int>
+	static constant evOnAnyDestroy	= new Event<int>
+	private Queue<Invoker> evs
+	
+	/** automatically generated instance events, called upon destruction */
+	function evOnDestroy() returns FunctionList
+		return evs.peek() castTo FunctionList
+	
+	ondestroy
+		evOnAnyDestroy.execute(this castTo int)
+		evOnDestroy().execute()
+		while evs.getSize()>0
+			destroy evs.dequeue()
+		destroy evs
+		
+	construct()
+		evs			= new Queue<Invoker>
+		evOnCreate.execute(this castTo int)
+		addEvent(new FunctionList)	// evOnDestroy()
+		
+	/** registers given event so it becomes automatically disposed of	*/
+	function addEvent(Invoker e)
+		evs.enqueue(e)
+		

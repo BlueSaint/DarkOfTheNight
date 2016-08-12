@@ -1,6 +1,7 @@
 package Escaper
 
 import Client
+import Slider
 import EscaperPickerObj
 import LinkedList
 
@@ -43,13 +44,23 @@ public function Escaper.owner() returns Client
 
 public function Client.escaper() returns Escaper
 	return this castTo int castTo Escaper
+	
+public function Escaper.slider() returns Slider
+	return Slider.fromUnit(this.u)
+	
+public function Slider.escaper() returns Escaper
+	for e in escapers
+		if e.slider()==this
+			return e
+	error("Slider/Escaper structure is corrupt")
+	return null
 
 // --------------- 
 
 init
-	evClientEnter.register((Client c)->begin
-		c.escaper().initialize()
+	Client.evOnCreate.register((int c) -> begin
+		(c castTo Escaper).initialize()
 	end)
-	evClientLeave.register((Client c)->begin
-		destroy c.escaper()
+	Client.evOnAnyDestroy.register((int c) -> begin
+		destroy c castTo Escaper
 	end)
